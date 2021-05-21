@@ -19,6 +19,8 @@ project(
 	LANGUAGES C CXX ASM
 )
 
+add_definitions(-D__STDC_FORMAT_MACROS)
+
 if(MSVC)
 	enable_language(ASM_MASM)
 endif()
