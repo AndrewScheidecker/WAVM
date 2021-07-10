@@ -41,6 +41,12 @@ PUSH_DISABLE_WARNINGS_FOR_LLVM_HEADERS
 #include <llvm/Target/TargetMachine.h>
 POP_DISABLE_WARNINGS_FOR_LLVM_HEADERS
 
+#ifdef __MINGW32__
+#define WINDOWS_SEH_HANDLER_NAME "__gxx_personality_seh0"
+#else
+#define WINDOWS_SEH_HANDLER_NAME "__CxxFrameHandler3"
+#endif
+
 #define LAZY_PARSE_DWARF_LINE_INFO (LLVM_VERSION_MAJOR >= 9)
 
 namespace llvm {

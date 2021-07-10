@@ -472,7 +472,7 @@ Module::Module(const std::vector<U8>& objectBytes,
 	if(USE_WINDOWS_SEH && pdataCopy)
 	{
 		// Lookup the real address of _CxxFrameHandler3.
-		const llvm::JITEvaluatedSymbol sehHandlerSymbol = resolveJITImport("__CxxFrameHandler3");
+		const llvm::JITEvaluatedSymbol sehHandlerSymbol = resolveJITImport(WINDOWS_SEH_HANDLER_NAME);
 		WAVM_ERROR_UNLESS(sehHandlerSymbol);
 		const U64 sehHandlerAddress = U64(sehHandlerSymbol.getAddress());
 

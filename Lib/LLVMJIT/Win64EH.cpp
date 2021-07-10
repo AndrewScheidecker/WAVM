@@ -133,7 +133,7 @@ static void applyImageRelativeRelocations(const llvm::LoadedObjectInfo& loadedOb
 				// Resolve __CxxFrameHandler3 to the trampoline previously created in the image's
 				// 32-bit address space.
 				const std::string symbolName = cantFail(symbol->getName()).str();
-				if(symbolName == "__CxxFrameHandler3") { symbolAddress = sehTrampolineAddress; }
+				if(symbolName == WINDOWS_SEH_HANDLER_NAME) { symbolAddress = sehTrampolineAddress; }
 				else
 				{
 					llvm::JITSymbol resolvedSymbol

@@ -136,7 +136,7 @@ void LLVMJIT::emitModule(const IR::Module& irModule,
 	auto personalityFunction = llvm::Function::Create(
 		llvm::FunctionType::get(llvmContext.i32Type, {}, false),
 		llvm::GlobalValue::LinkageTypes::ExternalLinkage,
-		moduleContext.useWindowsSEH ? "__CxxFrameHandler3" : "__gxx_personality_v0",
+		moduleContext.useWindowsSEH ? WINDOWS_SEH_HANDLER_NAME : "__gxx_personality_v0",
 		&outLLVMModule);
 
 	// Create LLVM external globals corresponding to the encoded function types for the module's

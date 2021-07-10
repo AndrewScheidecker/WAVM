@@ -32,8 +32,14 @@ using namespace WAVM::LLVMJIT;
 namespace LLVMRuntimeSymbols {
 #ifdef _WIN32
 	// the LLVM X86 code generator calls __chkstk when allocating more than 4KB of stack space
+#ifdef __MINGW32__
+	extern "C" void ___chkstk_ms();
+	extern "C" void __gxx_personality_seh0();
+#else
 	extern "C" void __chkstk();
 	extern "C" void __CxxFrameHandler3();
+
+#endif
 #else
 #if defined(__APPLE__)
 	// LLVM's memset intrinsic lowers to calling __bzero on MacOS when writing a constant zero.
@@ -51,8 +57,13 @@ namespace LLVMRuntimeSymbols {
 		{"memmove", (void*)&memmove},
 		{"memset", (void*)&memset},
 #ifdef _WIN32
+#ifdef __MINGW32__
+		{"___chkstk_ms", (void*)&___chkstk_ms},
+		{"__gxx_personality_seh0", (void*)&__gxx_personality_seh0},
+#else
 		{"__chkstk", (void*)&__chkstk},
 		{"__CxxFrameHandler3", (void*)&__CxxFrameHandler3},
+#endif
 #else
 #if defined(__APPLE__)
 		{"__bzero", (void*)&__bzero},
