@@ -104,6 +104,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
 endif()
 
 if(WAVM_ENABLE_RUNTIME)
+  # TODO(Harrm): seems like LLVM version in Hunter is currently ancient so this doesn't work
+	# hunter_add_package(LLVM)
+
 	# Find an installed build of LLVM
 	find_package(LLVM REQUIRED CONFIG)
 
@@ -125,7 +128,7 @@ if(WAVM_ENABLE_RUNTIME)
 	list(REMOVE_ITEM LLVM_DEFINITIONS "-D_CRT_NONSTDC_NO_WARNINGS")
 	list(REMOVE_ITEM LLVM_DEFINITIONS "-D_SCL_SECURE_NO_DEPRECATE")
 	list(REMOVE_ITEM LLVM_DEFINITIONS "-D_SCL_SECURE_NO_WARNINGS")
-	
+
 	option(WAVM_ENABLE_UNWIND "enables printing stack traces" ON)
 else()
 	set(WAVM_ENABLE_UNWIND OFF)
@@ -193,12 +196,6 @@ install(FILES ${PROJECT_BINARY_DIR}/Include/WAVM/Inline/Version.h
 install(FILES ${WAVM_SOURCE_DIR}/LICENSE.txt
 		COMPONENT runtime
 		DESTINATION $<IF:$<PLATFORM_ID:Windows>,.,${CMAKE_INSTALL_DATAROOTDIR}/wavm>)
-
-# Install the Examples directory to <install root>/examples on Windows, and <install root>/share/wavm/examples on other systems.
-install(DIRECTORY ${WAVM_SOURCE_DIR}/Examples/
-		DESTINATION $<IF:$<PLATFORM_ID:Windows>,examples,${CMAKE_INSTALL_DATAROOTDIR}/wavm/examples>
-		COMPONENT runtime
-		PATTERN *.txt EXCLUDE)
 
 set(WAVM_C_CXX_FLAGS)
 set(WAVM_CXX_FLAGS)
@@ -272,7 +269,7 @@ string(REPLACE "/Ob1" "/Ob2" CMAKE_CXX_FLAGS_RELWITHDEBINFO_LOCAL ${CMAKE_CXX_FL
 set(CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO_LOCAL} CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELWITHDEBINFO_LOCAL} CACHE STRING "" FORCE)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")	
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 	# Expose the -fuse-ld=<x> option on GCC/Clang through a WAVM_USE_LINKER config variable.
 	set(WAVM_USE_LINKER "" CACHE STRING "If set, overrides the default linker (as the compiler option -fuse-ld=<WAVM_USE_LINKER>)")
@@ -283,7 +280,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
 	# Warn if a switch doesn't handle an enum case even if it has a default label.
 	wavm_add_c_cxx_flag_if_supported("-Wswitch-enum")
 	wavm_add_c_cxx_flag_if_supported("-Wswitch-default")
-	
+
 	wavm_add_c_cxx_flag_if_supported("-Wnull-dereference")
 	wavm_add_c_cxx_flag_if_supported("-Wduplicated-cond")
 	wavm_add_c_cxx_flag_if_supported("-Wduplicated-branches")
@@ -383,7 +380,7 @@ function(WAVM_SET_TARGET_LINKER_OPTIONS TARGET_NAME)
 	else()
 		target_link_libraries(${TARGET_NAME} PRIVATE ${WAVM_LINKER_FLAGS})
 	endif()
-	
+
 	if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 		get_target_property(TARGET_TYPE ${TARGET_NAME} TYPE)
 		if(TARGET_TYPE STREQUAL "STATIC_LIBRARY" AND WAVM_ENABLE_STATIC_LIBRARY_PIC)
@@ -415,7 +412,7 @@ function(WAVM_SET_TARGET_SANITIZER_OPTIONS TARGET_NAME)
 			target_compile_options(${TARGET_NAME} PRIVATE "-fsanitize=thread")
 			target_link_libraries(${TARGET_NAME} PUBLIC -fsanitize=thread)
 		endif()
-		
+
 		# Optionally enable Clang's libfuzzer.
 		if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND WAVM_ENABLE_LIBFUZZER)
 			target_compile_options(${TARGET_NAME} PRIVATE "-fsanitize=fuzzer")
@@ -450,10 +447,10 @@ function(WAVM_SET_TARGET_COMPILE_OPTIONS TARGET_NAME)
 
 	# Target C++11.
 	target_compile_features(${TARGET_NAME} PUBLIC cxx_std_14)
-	
+
 	# Set sanitizer options.
 	WAVM_SET_TARGET_SANITIZER_OPTIONS(${TARGET_NAME})
-	
+
 	if(MSVC)
 		# Compile files in parallel.
 		target_compile_options(${TARGET_NAME} PRIVATE "/MP")
@@ -474,7 +471,7 @@ function(WAVM_SET_TARGET_COMPILE_OPTIONS TARGET_NAME)
 		target_compile_options(${TARGET_NAME} PRIVATE "/wd4251") # struct '' needs to have dll-interface to be used by clients of struct ''
 
 		target_link_libraries(${TARGET_NAME} PRIVATE "-ignore:4199") # /DELAYLOAD:... ignored; no imports found from ...
-		
+
 		if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 			target_compile_options(${TARGET_NAME} PRIVATE "-Wno-deprecated-declarations")
 		endif()
@@ -490,7 +487,7 @@ function(WAVM_SET_TARGET_COMPILE_OPTIONS TARGET_NAME)
 		#     behavior.
 		target_compile_definitions(${TARGET_NAME} PRIVATE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	
+
 		# Compile with all+extra warnings and fatal warnings
 		target_compile_options(${TARGET_NAME} PRIVATE "-Wall")
 		target_compile_options(${TARGET_NAME} PRIVATE "-Wextra")
@@ -510,7 +507,7 @@ function(WAVM_SET_TARGET_COMPILE_OPTIONS TARGET_NAME)
 		target_compile_options(${TARGET_NAME} PRIVATE "-pthread")
 		target_link_libraries(${TARGET_NAME} PRIVATE "-pthread")
 	endif()
-	
+
 	# Add the optional flags that the compiler was detected to support.
 	# This needs to happen *AFTER* the above -Wall -Wextra to ensure that those flags don't
 	# re-enable warnings that are being disabled by these flags.
@@ -571,9 +568,9 @@ function(WAVM_ADD_LIB_COMPONENT COMPONENT_NAME)
 	endforeach()
 	foreach(COMPONENT_NONCOMPILED_SOURCE ${COMPONENT_NONCOMPILED_SOURCES})
 		get_filename_component(COMPONENT_NONCOMPILED_SOURCE_ABSOLUTE ${COMPONENT_NONCOMPILED_SOURCE} ABSOLUTE)
-		list(APPEND COMPONENT_NONCOMPILED_SOURCES_ABSOLUTE ${COMPONENT_NONCOMPILED_SOURCE_ABSOLUTE})			
+		list(APPEND COMPONENT_NONCOMPILED_SOURCES_ABSOLUTE ${COMPONENT_NONCOMPILED_SOURCE_ABSOLUTE})
 	endforeach()
-	
+
 	# Directly add the component's source files to the monolithic WAVM library.
 	target_sources(libWAVM PRIVATE ${COMPONENT_SOURCES_ABSOLUTE} ${CMAKE_CURRENT_LIST_FILE})
 
@@ -587,7 +584,7 @@ function(WAVM_ADD_LIB_COMPONENT COMPONENT_NAME)
 	list(APPEND WAVM_MONOLIB_PUBLIC_LIBS ${COMPONENT_PUBLIC_LIBS})
 	set(WAVM_MONOLIB_PRIVATE_LIBS ${WAVM_MONOLIB_PRIVATE_LIBS} CACHE INTERNAL "" FORCE)
 	set(WAVM_MONOLIB_PUBLIC_LIBS ${WAVM_MONOLIB_PUBLIC_LIBS} CACHE INTERNAL "" FORCE)
-	
+
 	# Add the component's include directories and definitions.
 	target_include_directories(libWAVM PRIVATE ${COMPONENT_PRIVATE_INCLUDE_DIRECTORIES})
 	target_include_directories(libWAVM SYSTEM PRIVATE ${COMPONENT_PRIVATE_SYSTEM_INCLUDE_DIRECTORIES})
@@ -631,7 +628,7 @@ function(WAVM_ADD_THIRD_PARTY_LIBRARY LIB_NAME)
 
 	# Create a static library.
 	add_library(${LIB_NAME} STATIC ${LIB_SOURCES} ${LIB_NONCOMPILED_SOURCES})
-	
+
 	# Target C++11.
 	target_compile_features(${LIB_NAME} PRIVATE cxx_std_11)
 
@@ -696,7 +693,18 @@ else()
 endif()
 
 # Process the CMake scripts in subdirectories.
-add_subdirectory(Examples)
+
+option(WAVM_BUILD_EXAMPLES "Build examples" OFF)
+if (WAVM_BUILD_EXAMPLES)
+	# Install the Examples directory to <install root>/examples on Windows, and <install root>/share/wavm/examples on other systems.
+	install(DIRECTORY ${WAVM_SOURCE_DIR}/Examples/
+			DESTINATION $<IF:$<PLATFORM_ID:Windows>,examples,${CMAKE_INSTALL_DATAROOTDIR}/wavm/examples>
+			COMPONENT runtime
+			PATTERN *.txt EXCLUDE)
+
+	add_subdirectory(Examples)
+endif()
+
 add_subdirectory(Include/WAVM/Inline)
 add_subdirectory(Lib/IR)
 add_subdirectory(Lib/Logging)
@@ -707,8 +715,17 @@ add_subdirectory(Lib/VFS)
 add_subdirectory(Lib/WASM)
 add_subdirectory(Lib/WASTParse)
 add_subdirectory(Lib/WASTPrint)
-add_subdirectory(Programs/wavm)
-add_subdirectory(Test)
+
+option(WAVM_BUILD_PROGRAMS "Build programs" OFF)
+if (WAVM_BUILD_PROGRAMS)
+  add_subdirectory(Programs/wavm)
+endif()
+
+option(WAVM_BUILD_TESTS "Build tests" OFF)
+if (WAVM_BUILD_TESTS)
+	add_subdirectory(Test)
+endif()
+
 add_subdirectory(ThirdParty/BLAKE2)
 add_subdirectory(ThirdParty/liblmdb)
 
